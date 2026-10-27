@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-
-function Brand({ compact = false }: { compact?: boolean }) {
-  return <span className={`brand ${compact ? 'compact' : ''}`} aria-label="PayPal"><span className="brand-icon"><i>P</i><b>P</b></span>{!compact && <span><strong>Pay</strong><em>Pal</em></span>}</span>
-}
+import { Brand } from './Brand'
 const menus: Record<string, { title: string; text: string; href: string }[]> = {
   Personal: [{title:'Shop and pay',text:'Your everyday, with more possibilities.',href:'#shop'},{title:'Send money',text:'Bring your people a little closer.',href:'#send'},{title:'Get the app',text:'Your money. Ready when you are.',href:'#app'}],
   Business: [{title:'Accept payments',text:'Give your customers more ways to pay.',href:'#business'},{title:'Grow your business',text:'Tools for your next big idea.',href:'#business'}],

