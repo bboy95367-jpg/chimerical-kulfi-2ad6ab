@@ -48,10 +48,6 @@ function RefundsSupportPage() {
       </div>
     </header>
     <main className="refund-main">
-      <div className="refund-notice" role="note">
-        <strong>Independent service</strong>
-        PayPalWallets is not PayPal, Inc. and is not official PayPal support. Requests go to this site’s operator, who cannot access your PayPal account or issue refunds on PayPal’s behalf.
-      </div>
       <section className="refund-card" aria-labelledby="refund-title">
         <div className="refund-card-head">
           <h1 id="refund-title">Refund request</h1>
