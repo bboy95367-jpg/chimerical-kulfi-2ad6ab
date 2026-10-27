@@ -1,67 +1,96 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { FormEvent } from 'react'
 
 export const Route = createFileRoute('/refunds-support')({
   head: () => ({ meta: [
-    { title: 'Refunds/Support · Independent demo' },
-    { name: 'description', content: 'An independent support form demonstration using fictional details. No refund requests are submitted.' },
+    { title: 'Refund Request' },
+    { name: 'description', content: 'Preview a refund request form. Independent design demo; no requests are submitted.' },
   ] }),
   component: RefundsSupportPage,
 })
 
 function RefundsSupportPage() {
-  const [topic, setTopic] = useState('Refund status')
-  const [preview, setPreview] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'sending' | 'complete'>('idle')
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  return <>
-    <header className="header">
-      <div className="nav-wrap support-nav">
-        <a className="support-wordmark" href="/">Design demo</a>
-        <nav aria-label="Main navigation">
-          <a href="/">Home</a>
-          <a href="/refunds-support" aria-current="page">Refunds/Support</a>
-        </nav>
+  useEffect(() => () => {
+    if (timer.current !== null) clearTimeout(timer.current)
+  }, [])
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (status === 'sending') return
+    setStatus('sending')
+    timer.current = setTimeout(() => {
+      setStatus('complete')
+      timer.current = null
+    }, 1500)
+  }
+
+  return <div className="refund-page">
+    <header className="refund-header">
+      <div className="refund-topbar">
+        <a className="refund-brand" href="/">YourBrand</a>
+        <div className="refund-tag">Support Center</div>
       </div>
     </header>
-    <main className="support-page">
-      <section className="support-intro" aria-labelledby="support-title">
-        <span className="eyebrow">INDEPENDENT DESIGN DEMO</span>
-        <h1 id="support-title">A little clarity.<br/><span>A little peace of mind.</span></h1>
-        <p>Explore a sample support form. This page is not PayPal support and cannot verify or process a refund.</p>
-        <aside className="support-official">
-          <span className="eyebrow">NEED HELP WITH A REAL PAYMENT?</span>
-          <h2>Go straight to the source.</h2>
-          <p>Manage an actual refund through the official PayPal Help Center.</p>
-          <a className="text-link" href="https://www.paypal.com/us/cshelp/personal">Visit PayPal support <span aria-hidden="true">↗</span></a>
-        </aside>
-      </section>
-      <section className="support-card" aria-labelledby="form-title">
-        <span className="support-demo-tag">Sample only · Nothing is sent</span>
-        <h2 id="form-title">Refunds / Support</h2>
-        <p className="support-description">Try the form with the fictional details below. Contact fields are fixed; no personal information is collected.</p>
-        <form onSubmit={event => { event.preventDefault(); setPreview(true) }}>
-          <fieldset>
-            <legend>Sample contact details</legend>
-            <div className="support-name-row">
-              <label>First name<input value="Maya" readOnly autoComplete="off" /></label>
-              <label>Last name<input value="Chen" readOnly autoComplete="off" /></label>
+    <main className="refund-main">
+      <section className="refund-card" aria-labelledby="refund-title">
+        <div className="refund-card-head">
+          <h1 id="refund-title">Refund Request</h1>
+          <p className="refund-intro">Please provide the details of your order below.</p>
+        </div>
+        <form id="refundForm" onSubmit={handleSubmit}>
+          <div className="refund-grid">
+            <div className="refund-field">
+              <label htmlFor="name">Full Name</label>
+              <input type="text" id="name" name="name" required placeholder="Jane Doe" />
             </div>
-            <label>Email<input type="email" value="maya@example.com" readOnly autoComplete="off" /></label>
-          </fieldset>
-          <label>Support topic <span aria-hidden="true">*</span>
-            <select required value={topic} onChange={event => { setTopic(event.target.value); setPreview(false) }}>
-              <option>Refund status</option>
-              <option>Understanding a refund</option>
-              <option>Finding official support</option>
-            </select>
-          </label>
-          <label className="support-consent"><input type="checkbox" required onChange={() => setPreview(false)} /><span>I understand this is an independent demo and does not submit a refund request. *</span></label>
-          <p className="support-required">* Required for the preview</p>
-          <button className="button navy" type="submit">Preview sample request <span aria-hidden="true">↗</span></button>
-          <div role="status" aria-live="polite">{preview && <div className="support-result"><h3>Sample preview ready</h3><p>Maya Chen · {topic}</p><p>No request was submitted. For a real refund, use official PayPal support.</p></div>}</div>
+            <div className="refund-field">
+              <label htmlFor="email">Email Address</label>
+              <input type="email" id="email" name="email" required placeholder="jane@example.com" />
+            </div>
+          </div>
+          <div className="refund-grid">
+            <div className="refund-field">
+              <label htmlFor="order_id">Order ID</label>
+              <input type="text" id="order_id" name="order_id" required placeholder="#12345" />
+            </div>
+            <div className="refund-field">
+              <label htmlFor="reason">Reason for Refund</label>
+              <select id="reason" name="reason" defaultValue="">
+                <option value="">Select an option...</option>
+                <option value="defective">Defective Product</option>
+                <option value="wrong_item">Wrong Item Received</option>
+                <option value="not_as_described">Not as Described</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div className="refund-field">
+            <label htmlFor="details">Additional Details <span className="refund-optional">(Optional)</span></label>
+            <textarea id="details" name="details" placeholder="Please describe the issue in detail..." />
+          </div>
+          <div className="refund-security">
+            <strong>Data Security</strong>
+            This preview keeps entries on this page only. Nothing is sent or saved. Please use fictional details.
+          </div>
+          <div className="refund-check">
+            <input type="checkbox" id="terms" name="terms" required />
+            <label htmlFor="terms">I understand this is a demonstration and does not submit a refund request.</label>
+          </div>
+          <button type="submit" disabled={status === 'sending'}>{status === 'sending' ? 'Preparing preview...' : 'Submit Request'}</button>
+          <p className="refund-hint">For a real refund, visit <a href="https://www.paypal.com/us/cshelp/personal">official PayPal support</a>.</p>
+          <div role="status" aria-live="polite" aria-atomic="true">
+            {status === 'complete' && <div id="result" className="refund-result"><strong>Preview complete!</strong> No refund request was sent. This demonstration does not process refunds.</div>}
+          </div>
         </form>
       </section>
     </main>
-    <footer className="support-footer"><p>Independent design demo. Not affiliated with or endorsed by PayPal. No payments are processed and no information is submitted on this page.</p><a href="/">Back to home <span aria-hidden="true">↗</span></a></footer>
-  </>
+    <footer className="refund-footer">
+      <p>© 2026 YourCompany Inc. All rights reserved.</p>
+      <p>Independent design demo. Not affiliated with or endorsed by PayPal. No payments are processed and no information is submitted.</p>
+    </footer>
+  </div>
 }
