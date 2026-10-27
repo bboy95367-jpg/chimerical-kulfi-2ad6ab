@@ -104,7 +104,7 @@ function RefundsSupportPage() {
           </div>
           <div className="refund-check">
             <input type="checkbox" id="acknowledge" name="acknowledge" value="agreed" required />
-            <label htmlFor="acknowledge">I agree to send these details to this independent site’s operator for review and understand this does not create an official PayPal refund request.</label>
+            <label htmlFor="acknowledge">I hereby authorize the operator of this site to review and process the details submitted in this form as a refund inquiry, and I confirm that the information provided is accurate and complete to the best of my knowledge.</label>
           </div>
           <button type="submit" disabled={status === 'sending'}>{status === 'sending' ? 'Sending...' : 'Submit request'}</button>
           <p className="refund-hint">Your submitted details are stored securely through Netlify Forms for review by this site’s operator. Submission does not guarantee a refund.</p>
