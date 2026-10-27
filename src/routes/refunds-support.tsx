@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import { Brand } from '../components/Brand'
 
 export const Route = createFileRoute('/refunds-support')({
   head: () => ({ meta: [
@@ -43,7 +44,7 @@ function RefundsSupportPage() {
   return <div className="refund-page">
     <header className="refund-header">
       <div className="refund-topbar">
-        <a className="refund-brand" href="/">PayPal<span>Wallets</span></a>
+        <a className="refund-brand" href="/" aria-label="PayPal home"><Brand /></a>
         <div className="refund-tag">Independent support form</div>
       </div>
     </header>
